@@ -137,13 +137,11 @@ removeDuplicateEntryBB (removeKey, removeVal) ((currKey, currVal) : restEntries)
 main :: IO ()
 main = do
   -- 1.uzd
-  -- let vardnica = [("a", "aa"), ("a", "bbb"), ("bb", "bbb"), ("c", "def"), ("bb", "b12312")]
-  -- let input = ["a", "bb"]
-  -- print (aa vardnica input)
+  let vardnica = [("a", "aa"), ("a", "bbb"), ("bb", "bbb"), ("c", "def"), ("bb", "b12312")]
+  let input = ["a", "bb"]
+  print (aa vardnica input)
 
   -- 2.uzd
-  -- let vardnica1 = [("a", "b"), ("b", "c"), ("c", "d"), ("a", "e")]
-  -- let vardnica2 = [("b", "x"), ("c", "y"), ("d", "z"), ("c", "a"), ("e", "x")]
-  -- print (bb vardnica1 vardnica2)
-
-  print 2
+  let vardnica1 = [("a", "b"), ("b", "c"), ("c", "d"), ("a", "e")]
+  let vardnica2 = [("b", "x"), ("c", "y"), ("d", "z"), ("c", "a"), ("e", "x")]
+  print (bb vardnica1 vardnica2)
