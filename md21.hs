@@ -19,8 +19,9 @@ aaInputs ::
   [dictVal] ->
   -- | final output translations
   [dictVal]
-aaInputs dictionary (curr_input : rest_input) result_translations = aaInputs dictionary rest_input (result_translations ++ aaTransl dictionary curr_input [])
 aaInputs dictionary [] result_translations = removeDuplicatesAA result_translations []
+-- Given a list of inputs, translates the first input and calls aaInputs on the rest of the inputs
+aaInputs dictionary (curr_input : rest_input) result_translations = aaInputs dictionary rest_input (result_translations ++ aaTransl dictionary curr_input [])
 
 -- returns all translations of given input value
 aaTransl ::
@@ -33,12 +34,14 @@ aaTransl ::
   [dictVal] ->
   -- | final output translations
   [dictVal]
-aaTransl ((transl_key, transl_res) : rest_transl) input input_translations =
-  if transl_key == input
-    then aaTransl rest_transl input (input_translations ++ [transl_res])
-    else aaTransl rest_transl input input_translations
 -- all translations iterated
 aaTransl [] input input_translations = input_translations
+aaTransl ((transl_key, transl_res) : rest_transl) input input_translations =
+  if transl_key == input
+    then -- If the key matches the input, add the translation to the result and check the next translation
+      aaTransl rest_transl input (input_translations ++ [transl_res])
+    else -- Otherwise, check the next translation
+      aaTransl rest_transl input input_translations
 
 -- Iterates over all input values and removes duplicates
 removeDuplicatesAA ::
@@ -87,7 +90,9 @@ bbDict ::
   [(dict1Key, dict2Val)] ->
   -- | final output dictionary
   [(dict1Key, dict2Val)]
+-- Once all pairs from dict 1 are checked, return the result
 bbDict [] dict2 results = removeDuplicatesBB results []
+-- Given a list of tuples, combines the first tuple with all tuples from dict 2, then call bbDict on the next tuple
 bbDict ((key1, val1) : rest_dict1) dict2 results = bbDict rest_dict1 dict2 (results ++ bbInputs (key1, val1) dict2 [])
 
 -- Combines translations for one translation pair from dictionary 1 with all translation pairs from dictionary 2
@@ -101,13 +106,16 @@ bbInputs ::
   [(dict1Key, dict2Val)] ->
   -- | final output dictionary
   [(dict1Key, dict2Val)]
+-- Once all pairs from dict 2 are checked, return the result
 bbInputs pair [] resolutDictionary = resolutDictionary
 bbInputs (keyStart, valStart) ((keyEnd, valEnd) : rest_dict2) resultDictionary =
   if valStart == keyEnd
-    then bbInputs (keyStart, valStart) rest_dict2 (resultDictionary ++ [(keyStart, valEnd)])
-    else bbInputs (keyStart, valStart) rest_dict2 resultDictionary
+    then -- If the value from dict 1 and key from dict 2 matches, add the combined pair to the result dictionary and check the next pair
+      bbInputs (keyStart, valStart) rest_dict2 (resultDictionary ++ [(keyStart, valEnd)])
+    else -- Otherwise, check the next pair
+      bbInputs (keyStart, valStart) rest_dict2 resultDictionary
 
--- Iterates over all input values and removes duplicates
+-- Iterates over all input values and calls removeDuplicatesBB to remove duplicates for each tuple
 removeDuplicatesBB ::
   (Eq keyType, Eq valType) =>
   -- | input values
@@ -116,10 +124,12 @@ removeDuplicatesBB ::
   [(keyType, valType)] ->
   -- | final output values without duplicates
   [(keyType, valType)]
+-- Once all tuples are checked, return the result
 removeDuplicatesBB [] result = result
+-- Given a list of tuples, removes all duplicate occurrences of the first tuple, then call removeDuplicatesBB on the next tuple
 removeDuplicatesBB (currKey : restKeys) result = removeDuplicatesAA (removeDuplicateKeyAA currKey restKeys) (result ++ [currKey])
 
--- Given a key, removes all other instances of that key
+-- Given a key, removes all other instances of that key from the given list of tuples
 removeDuplicateEntryBB ::
   (Eq keyType, Eq valType) =>
   -- | key to be removed
@@ -128,20 +138,26 @@ removeDuplicateEntryBB ::
   [(keyType, valType)] ->
   -- | output values without duplicates
   [(keyType, valType)]
+-- once all entries are checked, return the result
 removeDuplicateEntryBB removeEntry [] = []
 removeDuplicateEntryBB (removeKey, removeVal) ((currKey, currVal) : restEntries) =
   if removeKey == currKey && removeVal == currVal
-    then removeDuplicateKeyAA (removeKey, removeVal) restEntries
-    else (currKey, currVal) : removeDuplicateKeyAA (removeKey, removeVal) restEntries
+    then -- if the key and value match, remove the entry
+      removeDuplicateKeyAA (removeKey, removeVal) restEntries
+    else -- otherwise, keep the entry and check the next one
+      (currKey, currVal) : removeDuplicateKeyAA (removeKey, removeVal) restEntries
+
+aa1 = aa [("a", "aa"), ("a", "bbb"), ("bb", "bbb"), ("c", "def"), ("bb", "b12312")] ["a", "bb"]
+
+aa2 = aa [("aa", "a"), ("bbb", "b"), ("def", "c"), ("b12312", "bb")] ["aa", "bbb", "aa"]
+
+bb1 = bb [("a", "b"), ("b", "c"), ("c", "d"), ("a", "e")] [("b", "x"), ("c", "y"), ("d", "z"), ("c", "a"), ("e", "x")]
+
+bb2 = bb [("your", "tavs"), ("name", "vards"), ("is", "ir"), ("name", "vards")] [("tavs", "your"), ("vards", "name"), ("ir", "is"), ("vards", "name")]
 
 main :: IO ()
 main = do
-  -- 1.uzd
-  let vardnica = [("a", "aa"), ("a", "bbb"), ("bb", "bbb"), ("c", "def"), ("bb", "b12312")]
-  let input = ["a", "bb"]
-  print (aa vardnica input)
-
-  -- 2.uzd
-  let vardnica1 = [("a", "b"), ("b", "c"), ("c", "d"), ("a", "e")]
-  let vardnica2 = [("b", "x"), ("c", "y"), ("d", "z"), ("c", "a"), ("e", "x")]
-  print (bb vardnica1 vardnica2)
+  print aa1
+  print aa2
+  print bb1
+  print bb2
